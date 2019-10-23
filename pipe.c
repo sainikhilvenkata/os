@@ -1,77 +1,40 @@
- C program to demonstrate working of fork() 
-#include <unistd.h> 
-#include <sys/types.h> 
-#include <errno.h> 
-#include <stdio.h> 
-#include <sys/wait.h> 
-#include <stdlib.h> 
-  
-int globalVar; /*  A global variable*/
-  
-int main(void) 
-{ 
-    int localVar = 0; 
-    int* p = (int*) malloc(2); 
-    pid_t childPID = fork(); 
-  
-    // Putting value at allocated address 
-    *p = 0; 
-  
-    if (childPID >= 0) // fork was successful 
-    { 
-        if (childPID == 0) // child process 
-        { 
-            printf("\n Child Process Initial Value :: localVar"
-                   " = %d, globalVar = %d", localVar, 
-                   globalVar); 
-            localVar++; 
-            globalVar++; 
-  
-            int c = 500; 
-            printf("\n Child Process :: localVar = %d, "
-                   "globalVar = %d", localVar, globalVar); 
-            printf("\n Address of malloced mem child = %p "
-                   "and value is %d", p, *p); 
-            printf("\n lets change the value pointed my malloc"); 
-  
-            *p = 50; 
-            printf("\n Address of malloced mem child = %p "
-                   "and value is %d", p, *p); 
-            printf("\n lets change the value pointed my "
-                   "malloc in child"); 
-  
-            *p = 200; 
-            printf("\n Address of malloced mem child = %p "
-                   "and value is %d\n\n\n", p, *p); 
-        } 
-        else // Parent process 
-        { 
-            printf("\n Parent process Initial Value :: "
-                   "localVar = %d, globalVar = %d", 
-                   localVar, globalVar); 
-  
-            localVar = 10; 
-            globalVar = 20; 
-            printf("\n Parent process :: localVar = %d,"
-                  " globalVar = %d", localVar, globalVar); 
-            printf("\n Address of malloced mem parent= %p "
-                   "and value is %d", p, *p); 
-  
-            *p = 100; 
-            printf("\n Address of malloced mem parent= %p "
-                   "and value is %d", p, *p); 
-            printf("\n lets change the value pointed my"
-                    " malloc in child"); 
-            *p = 400; 
-            printf("\n Address of malloced mem child = %p"
-                   " and value is %d \n", p, *p); 
-        } 
-    } 
-    else // fork failed 
-    { 
-        printf("\n Fork failed, quitting!!!!!!\n"); 
-        return 1; 
-    } 
-  
-    return 0; 
-} 
+#include<stdio.h>
+#include<sys/types.h>
+#include<unistd.h>
+int main()
+{
+ int p1[2],p2[2];
+ pid_t pid;
+ char inbuff[20],outbuff[20];
+pipe(p1);
+pipe(p2);
+printf("Inter process 2-way communication PIPE is established........\n");
+  pid=fork();
+  if(pid>0)
+	{
+	 printf("\tchild process is created successfully with child ID:-%d",pid);
+	 printf("\n This is parent process(parent id:-%d)...",getpid());
+	 printf("\n Enter the text to be sent to child:");
+	 scanf("%s",outbuff);
+	 write(p1[1],outbuff,sizeof(outbuff));
+	 
+	 read(p2[0],inbuff,sizeof(inbuff));
+	 printf("The message from child process(child id:-%d)is...%s\nreceived in parent(parent id:-%d)\n",pid,inbuff,getpid());
+	 }
+  else if(pid==0) 
+	{
+	 printf("\nThis is child process (child id:-%d)...",getpid());
+         read(p1[0],inbuff,sizeof(inbuff));
+	 printf("\ndata recieved from parent(parent id:-%d): %s....\n",getppid(),inbuff);
+	 printf("Enter the text to be sent to parent:");
+	 scanf("%s",outbuff);
+	 write(p2[1],outbuff,sizeof(outbuff));	
+	}
+  else 
+	{
+	printf("\n no child process is created....\n Better Luck next time...");
+	return 1;
+	}
+ 
+return 0;
+}
